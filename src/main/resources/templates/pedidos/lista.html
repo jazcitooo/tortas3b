@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestión de Pedidos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Listado de Pedidos</h1>
+            <p class="texto-suave">Programación de producción, control de franja horaria y seguimiento de entregas.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/pedidos/nuevo}" class="boton">➕ Nuevo Pedido</a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <form th:action="@{/pedidos}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fecha">Fecha de Entrega</label>
+                <input type="date" id="fecha" name="fecha" th:value="${fechaFiltro}">
+            </div>
+            <div class="campo">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado">
+                    <option value="TODOS">-- Todos los estados --</option>
+                    <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
+                    <option value="CONFIRMADO" th:selected="${estadoFiltro == 'CONFIRMADO'}">Confirmado</option>
+                    <option value="EN_PREPARACION" th:selected="${estadoFiltro == 'EN_PREPARACION'}">En preparación</option>
+                    <option value="LISTO" th:selected="${estadoFiltro == 'LISTO'}">Listo para retiro</option>
+                    <option value="EN_CAMINO" th:selected="${estadoFiltro == 'EN_CAMINO'}">En camino (delivery)</option>
+                    <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+                    <option value="CANCELADO" th:selected="${estadoFiltro == 'CANCELADO'}">Cancelado</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label for="tipoEntrega">Tipo de Entrega</label>
+                <select id="tipoEntrega" name="tipoEntrega">
+                    <option value="TODOS">-- Todos los tipos --</option>
+                    <option value="RETIRO" th:selected="${tipoEntregaFiltro == 'RETIRO'}">🏪 Retiro en local</option>
+                    <option value="DELIVERY" th:selected="${tipoEntregaFiltro == 'DELIVERY'}">🛵 Delivery</option>
+                </select>
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Filtrar</button>
+                <a th:href="@{/pedidos}" class="boton boton-secundario">Limpiar</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Entrega</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th class="num">Total</th>
+                    <th class="centrado">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="8" class="centrado texto-suave">No se encontraron pedidos con los filtros aplicados.</td>
+                </tr>
+                <tr th:each="p : ${pedidos}">
+                    <td><strong>#<span th:text="${p.id}">1</span></strong></td>
+                    <td th:text="${#temporals.format(p.fechaEntrega, 'dd/MM/yyyy')}">12/10/2026</td>
+                    <td style="font-weight: 600;" th:text="${#temporals.format(p.horaEntrega, 'HH:mm')}">14:00</td>
+                    <td>
+                        <strong th:text="${p.clienteNombre}">Cliente</strong><br>
+                        <span class="texto-suave" style="font-size: .85rem;" th:text="${p.clienteTelefono}">0990000000</span>
+                    </td>
+                    <td>
+                        <span th:text="${p.tipoEntrega == 'DELIVERY' ? '🛵 Delivery' : '🏪 Retiro'}">Retiro</span>
+                    </td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${p.estado}" th:text="${p.estado}">PENDIENTE</span>
+                    </td>
+                    <td class="num" style="font-weight: 700;" th:text="${#numbers.formatDecimal(p.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="centrado">
+                        <div class="acciones" style="justify-content: center;">
+                            <a th:href="@{/pedidos/detalle/{id}(id=${p.id})}" class="boton boton-secundario boton-chico">Detalle</a>
+                            <a th:if="${p.estado != 'CANCELADO' and p.estado != 'ENTREGADO'}"
+                               th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="boton boton-secundario boton-chico">Editar</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

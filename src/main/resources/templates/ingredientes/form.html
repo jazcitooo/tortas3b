@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${ingrediente.id != null ? 'Editar Ingrediente' : 'Nuevo Ingrediente'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="max-width: 600px; margin: 0 auto;">
+        <h1 th:text="${ingrediente.id != null ? 'Editar Ingrediente' : 'Nuevo Ingrediente'}">Ingrediente</h1>
+        <p class="texto-suave">Configure la materia prima, unidad de medida y umbrales de alerta.</p>
+
+        <section class="tarjeta">
+            <form th:action="${ingrediente.id != null ? '/ingredientes/actualizar' : '/ingredientes/guardar'}" method="post" class="formulario">
+                <input type="hidden" name="id" th:value="${ingrediente.id}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="campo">
+                    <label for="nombre" class="obligatorio">Nombre del Ingrediente</label>
+                    <input type="text" id="nombre" name="nombre" th:value="${ingrediente.nombre}" required placeholder="Ej. Chocolate Cobertura Semi-amargo">
+                </div>
+
+                <div class="campo">
+                    <label for="unidad" class="obligatorio">Unidad de Medida</label>
+                    <select id="unidad" name="unidad" required>
+                        <option value="KG" th:selected="${ingrediente.unidad == 'KG'}">Kilogramos (KG)</option>
+                        <option value="G" th:selected="${ingrediente.unidad == 'G'}">Gramos (G)</option>
+                        <option value="L" th:selected="${ingrediente.unidad == 'L'}">Litros (L)</option>
+                        <option value="ML" th:selected="${ingrediente.unidad == 'ML'}">Mililitros (ML)</option>
+                        <option value="UNIDAD" th:selected="${ingrediente.unidad == 'UNIDAD'}">Unidades (UNIDAD)</option>
+                    </select>
+                </div>
+
+                <div class="campo" th:if="${ingrediente.id == null}">
+                    <label for="stockActual" class="obligatorio">Stock Inicial</label>
+                    <input type="number" id="stockActual" name="stockActual" th:value="${ingrediente.stockActual != null ? ingrediente.stockActual : 0}" step="0.001" min="0" required placeholder="0.000">
+                </div>
+
+                <div class="campo">
+                    <label for="stockMinimo" class="obligatorio">Stock Mínimo (Alerta de Seguridad)</label>
+                    <input type="number" id="stockMinimo" name="stockMinimo" th:value="${ingrediente.stockMinimo != null ? ingrediente.stockMinimo : 0}" step="0.001" min="0" required placeholder="0.000">
+                </div>
+
+                <div class="campo">
+                    <label for="proveedorId">Proveedor Habitual (Opcional)</label>
+                    <select id="proveedorId" name="proveedorId">
+                        <option value="">-- Sin proveedor predeterminado --</option>
+                        <option th:each="p : ${proveedores}" th:value="${p.id}" th:text="${p.nombre}"
+                                th:selected="${p.id == ingrediente.proveedorId}">Lácteos Los Colonos</option>
+                    </select>
+                </div>
+
+                <div class="acciones" style="margin-top: 1rem;">
+                    <button type="submit" class="boton">Guardar Ingrediente</button>
+                    <a th:href="@{/ingredientes}" class="boton boton-secundario">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

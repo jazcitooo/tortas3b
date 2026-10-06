@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ventas y Caja')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Ventas y Arqueo de Caja</h1>
+            <p class="texto-suave">Cobros realizados sobre pedidos entregados y recaudación diaria.</p>
+        </div>
+    </div>
+
+    <!-- Indicador de recaudación -->
+    <section class="tarjeta indicador" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div class="etiqueta">Recaudación Cobrada Hoy</div>
+            <div class="valor" style="font-size: 2.2rem;" th:text="${#numbers.formatDecimal(totalHoy, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</div>
+        </div>
+        <div class="texto-suave" style="font-size: .9rem;">
+            * El cobro se realiza directamente desde la ficha de cada pedido.
+        </div>
+    </section>
+
+    <!-- Filtros por fecha -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <form th:action="@{/ventas}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fechaDesde">Fecha Desde</label>
+                <input type="date" id="fechaDesde" name="fechaDesde" th:value="${fechaDesde}">
+            </div>
+            <div class="campo">
+                <label for="fechaHasta">Fecha Hasta</label>
+                <input type="date" id="fechaHasta" name="fechaHasta" th:value="${fechaHasta}">
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Filtrar</button>
+                <a th:href="@{/ventas}" class="boton boton-secundario">Hoy</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>N° Venta</th>
+                    <th>N° Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha y Hora</th>
+                    <th>Método de Pago</th>
+                    <th class="num">Monto Cobrado</th>
+                    <th class="centrado" th:if="${esAdmin}">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(ventas)}">
+                    <td colspan="7" class="centrado texto-suave">No se registran cobros en las fechas seleccionadas.</td>
+                </tr>
+                <tr th:each="v : ${ventas}">
+                    <td><strong>#<span th:text="${v.id}">1</span></strong></td>
+                    <td>
+                        <a th:href="@{/pedidos/detalle/{id}(id=${v.pedidoId})}" th:text="'#' + ${v.pedidoId}">#1</a>
+                    </td>
+                    <td th:text="${v.clienteNombre}">Ana Benítez</td>
+                    <td th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy HH:mm')}">12/10/2026 14:15</td>
+                    <td>
+                        <span class="estado estado-CONFIRMADO" th:text="${v.metodoPago}">EFECTIVO</span>
+                    </td>
+                    <td class="num" style="font-weight: 700; color: var(--chocolate);"
+                        th:text="${#numbers.formatDecimal(v.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">120.000 Gs.</td>
+                    <td class="centrado" th:if="${esAdmin}">
+                        <form th:action="@{/ventas/anular/{id}(id=${v.id})}" method="post"
+                              data-confirmar="¿Está seguro de anular esta venta? El pedido quedará pendiente de cobro nuevamente.">
+                            <button type="submit" class="boton boton-peligro boton-chico">Anular</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

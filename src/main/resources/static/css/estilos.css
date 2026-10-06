@@ -1,0 +1,245 @@
+/* =====================================================================
+   Tortas y Chocolates 3B - Estilos generales
+   Paleta de pastelería: chocolate, rosa frutilla y crema.
+   Diseño "mobile first": primero teléfono, luego pantallas grandes.
+   ===================================================================== */
+
+:root {
+    --chocolate: #5b3a29;
+    --chocolate-oscuro: #3e2519;
+    --rosa: #e86a8e;
+    --rosa-suave: #fde4ec;
+    --crema: #fff8f0;
+    --blanco: #ffffff;
+    --texto: #2d2420;
+    --texto-suave: #6f625b;
+    --borde: #eadfd6;
+
+    --exito: #2e7d4f;     --exito-fondo: #e3f4ea;
+    --error: #b3261e;     --error-fondo: #fbe5e3;
+    --aviso: #8a5a00;     --aviso-fondo: #fff2cc;
+    --info: #1f5f8b;      --info-fondo: #e2effa;
+
+    --radio: 10px;
+    --sombra: 0 2px 8px rgba(62, 37, 25, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--texto);
+    background: var(--crema);
+}
+
+h1, h2, h3 { color: var(--chocolate-oscuro); line-height: 1.25; }
+h1 { font-size: 1.6rem; margin: 0 0 .5rem; }
+h2 { font-size: 1.2rem; margin: 0 0 1rem; }
+a { color: var(--chocolate); }
+code { background: var(--rosa-suave); padding: 0 .3em; border-radius: 4px; }
+
+.texto-suave { color: var(--texto-suave); }
+.centrado { text-align: center; }
+
+/* ---------- Barra superior y menú ---------- */
+.barra {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6rem 1rem;
+    background: var(--chocolate);
+    color: var(--blanco);
+}
+.marca {
+    display: flex; align-items: center; gap: .5rem;
+    color: var(--blanco); text-decoration: none; font-size: 1.1rem;
+}
+.marca strong { color: var(--rosa-suave); }
+.marca-icono { font-size: 1.5rem; }
+
+.menu-boton {
+    background: none; border: 1px solid rgba(255,255,255,.4); color: var(--blanco);
+    font-size: 1.4rem; border-radius: 6px; padding: .1rem .6rem; cursor: pointer;
+}
+.menu {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    padding-top: .5rem;
+}
+.menu.abierto { display: flex; }
+.menu a {
+    color: var(--blanco); text-decoration: none;
+    padding: .55rem .75rem; border-radius: 6px;
+}
+.menu a:hover, .menu a.activo { background: var(--chocolate-oscuro); }
+
+/* ---------- Contenido ---------- */
+.contenido {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+}
+
+.tarjeta {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Grilla de tarjetas para el dashboard */
+.grilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+.indicador .valor { font-size: 1.8rem; font-weight: 700; color: var(--chocolate); }
+.indicador .etiqueta { color: var(--texto-suave); font-size: .9rem; }
+.indicador.alerta-stock .valor { color: var(--error); }
+
+/* ---------- Mensajes ---------- */
+.alerta {
+    padding: .75rem 1rem;
+    border-radius: var(--radio);
+    margin-bottom: 1rem;
+    border-left: 5px solid;
+}
+.alerta-exito { background: var(--exito-fondo); color: var(--exito); border-color: var(--exito); }
+.alerta-error { background: var(--error-fondo); color: var(--error); border-color: var(--error); }
+.alerta-advertencia { background: var(--aviso-fondo); color: var(--aviso); border-color: var(--aviso); }
+
+/* ---------- Botones ---------- */
+.boton {
+    display: inline-block;
+    padding: .55rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--rosa);
+    color: var(--blanco);
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.boton:hover { filter: brightness(.93); }
+.boton-secundario { background: var(--blanco); color: var(--chocolate); border: 1px solid var(--borde); }
+.boton-peligro { background: var(--error); }
+.boton-chico { padding: .3rem .65rem; font-size: .875rem; }
+
+/* ---------- Formularios ---------- */
+/* minmax(0, 1fr): la grilla no se estira con tablas anchas; la tabla se desplaza dentro de su contenedor */
+.formulario { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.campo { display: flex; flex-direction: column; gap: .3rem; }
+.campo label { font-weight: 600; }
+.campo .obligatorio::after { content: " *"; color: var(--error); }
+input, select, textarea {
+    font: inherit;
+    padding: .55rem .7rem;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: var(--blanco);
+    width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--rosa);
+    border-color: var(--rosa);
+}
+.campo-error { color: var(--error); font-size: .875rem; }
+.acciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* Filtros en una fila que se acomoda */
+.filtros { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; }
+.filtros .campo { flex: 1 1 160px; }
+
+/* ---------- Tablas ---------- */
+.tabla-contenedor { overflow-x: auto; }
+.tabla { width: 100%; border-collapse: collapse; }
+.tabla th, .tabla td { padding: .6rem .7rem; border-bottom: 1px solid var(--borde); text-align: left; }
+.tabla th { background: var(--rosa-suave); color: var(--chocolate-oscuro); white-space: nowrap; }
+.tabla tr:hover td { background: #fffaf6; }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; }
+.fila-alerta td { background: var(--error-fondo); }
+
+/* ---------- Etiquetas de estado ---------- */
+.estado {
+    display: inline-block; padding: .1rem .55rem; border-radius: 999px;
+    font-size: .8rem; font-weight: 600; white-space: nowrap;
+}
+.estado-PENDIENTE      { background: var(--aviso-fondo); color: var(--aviso); }
+.estado-CONFIRMADO     { background: var(--info-fondo);  color: var(--info); }
+.estado-EN_PREPARACION,
+.estado-PREPARANDO     { background: #efe4f7; color: #6a3d8f; }
+.estado-LISTO          { background: #e0f2f1; color: #00695c; }
+.estado-EN_CAMINO      { background: #e8eaf6; color: #303f9f; }
+.estado-ENTREGADO,
+.estado-RECIBIDA       { background: var(--exito-fondo); color: var(--exito); }
+.estado-CANCELADO,
+.estado-CANCELADA      { background: #eeeeee; color: #616161; }
+
+/* ---------- Ventana de confirmación ---------- */
+.modal {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(45, 36, 32, .5); padding: 1rem;
+}
+.modal[hidden] { display: none; }
+.modal-caja {
+    background: var(--blanco); border-radius: var(--radio);
+    padding: 1.5rem; max-width: 420px; width: 100%;
+}
+.modal-botones { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+
+/* ---------- Tablas de carga (pedido y compra) en teléfono ----------
+   Cada fila pasa a dos líneas: el producto arriba; cantidad, subtotal y quitar abajo. */
+@media (max-width: 599px) {
+    .tabla-items thead { display: none; }
+    .tabla-items, .tabla-items tbody, .tabla-items tfoot { display: block; }
+    .tabla-items tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        gap: .5rem;
+        align-items: end;
+        padding: .75rem 0;
+        border-bottom: 1px solid var(--borde);
+    }
+    .tabla-items td, .tabla-items th { border: none; padding: 0; }
+    .tabla-items td:first-child { grid-column: 1 / -1; }
+    .tabla-items td::before {
+        display: block; text-align: left;
+        font-size: .8rem; font-weight: 600; color: var(--texto-suave);
+    }
+    #tabla-pedido td:nth-child(2)::before,
+    #tabla-compra td:nth-child(2)::before { content: "Cantidad"; }
+    #tabla-pedido td:nth-child(3)::before { content: "Subtotal"; }
+    #tabla-compra td:nth-child(3)::before { content: "Costo unit. (Gs.)"; }
+    .tabla-items tfoot tr { background: var(--rosa-suave); padding: .6rem .7rem; border-radius: 8px; }
+}
+
+/* ---------- Pantallas medianas y grandes ---------- */
+@media (min-width: 900px) {
+    .menu-boton { display: none; }
+    .menu {
+        display: flex; flex-direction: row; flex-wrap: wrap;
+        flex-basis: auto; padding-top: 0; gap: .25rem;
+    }
+    .formulario.dos-columnas { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .formulario.dos-columnas .ancho-completo { grid-column: 1 / -1; }
+    h1 { font-size: 1.9rem; }
+}
+
+/* ---------- Impresión de reportes ---------- */
+@media print {
+    .barra, .filtros, .acciones, .no-imprimir { display: none !important; }
+    body { background: #fff; }
+    .tarjeta { box-shadow: none; border: none; padding: 0; }
+}

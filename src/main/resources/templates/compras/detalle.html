@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Orden de Compra #' + ${compra.id})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <h1>Orden de Compra #<span th:text="${compra.id}">1</span></h1>
+            <p class="texto-suave">
+                Proveedor: <strong th:text="${compra.proveedorNombre}">Lácteos Los Colonos</strong> |
+                Fecha: <span th:text="${#temporals.format(compra.fecha, 'dd/MM/yyyy HH:mm')}">01/10/2026</span>
+            </p>
+        </div>
+        <div class="acciones">
+            <button type="button" class="boton boton-secundario" onclick="window.print()">🖨️ Imprimir</button>
+            <a th:href="@{/compras}" class="boton boton-secundario">Volver</a>
+        </div>
+    </div>
+
+    <!-- Estado y acciones -->
+    <section class="tarjeta" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <span class="texto-suave" style="font-size: .85rem;">Estado de la Orden:</span><br>
+            <span class="estado" style="font-size: 1rem; padding: .3rem .9rem; margin-top: .3rem;"
+                  th:classappend="'estado-' + ${compra.estado}" th:text="${compra.estado}">PENDIENTE</span>
+            <span th:if="${compra.fechaRecepcion != null}" class="texto-suave" style="font-size: .85rem; margin-left: .5rem;"
+                  th:text="'(Recibida el ' + ${#temporals.format(compra.fechaRecepcion, 'dd/MM/yyyy HH:mm')} + ')'"></span>
+        </div>
+
+        <div class="acciones" th:if="${compra.estado == 'PENDIENTE'}">
+            <form th:action="@{/compras/recibir/{id}(id=${compra.id})}" method="post"
+                  data-confirmar="¿Confirmar recepción de la mercadería? Esta acción sumará automáticamente el stock de cada ingrediente.">
+                <button type="submit" class="boton" style="background: var(--exito);">📦 Recibir y Sumar al Stock</button>
+            </form>
+            <form th:action="@{/compras/cancelar/{id}(id=${compra.id})}" method="post"
+                  data-confirmar="¿Está seguro de cancelar esta orden de compra?">
+                <button type="submit" class="boton boton-peligro">Cancelar Orden</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de ítems -->
+    <section class="tarjeta">
+        <h2>Detalle de Ingredientes</h2>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Ingrediente</th>
+                    <th>Unidad</th>
+                    <th class="num">Cantidad</th>
+                    <th class="num">Costo Unitario</th>
+                    <th class="num">Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="det : ${compra.detalles}">
+                    <td><strong th:text="${det.ingredienteNombre}">Harina</strong></td>
+                    <td><code th:text="${det.unidad}">KG</code></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(det.cantidad, 1, 'POINT', 3, 'COMMA')}">10,000</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(det.costoUnitario, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="num" style="font-weight: 600;" th:text="${#numbers.formatDecimal(det.subtotal, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th colspan="4" style="text-align: right; font-size: 1.1rem;">Total Inversión:</th>
+                    <th class="num" style="font-size: 1.25rem; font-weight: 700; color: var(--chocolate);"
+                        th:text="${#numbers.formatDecimal(compra.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div th:if="${compra.observaciones != null and !#strings.isEmpty(compra.observaciones)}" style="margin-top: 1rem; padding-top: .75rem; border-top: 1px dashed var(--borde);">
+            <span class="texto-suave" style="font-size: .85rem;">Observaciones:</span><br>
+            <p style="margin: .25rem 0 0;" th:text="${compra.observaciones}">Texto</p>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

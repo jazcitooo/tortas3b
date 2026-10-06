@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${cliente.id != null ? 'Editar Cliente' : 'Nuevo Cliente'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="max-width: 650px; margin: 0 auto;">
+        <h1 th:text="${cliente.id != null ? 'Editar Cliente' : 'Nuevo Cliente'}">Cliente</h1>
+        <p class="texto-suave">Cargue los datos de contacto del cliente para pedidos y envíos.</p>
+
+        <section class="tarjeta">
+            <form th:action="${cliente.id != null ? '/clientes/actualizar' : '/clientes/guardar'}" method="post" class="formulario">
+                <input type="hidden" name="id" th:value="${cliente.id}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="campo">
+                    <label for="nombre" class="obligatorio">Nombre y Apellido</label>
+                    <input type="text" id="nombre" name="nombre" th:value="${cliente.nombre}" required placeholder="Ej. Ana Benítez">
+                </div>
+
+                <div class="campo">
+                    <label for="telefono" class="obligatorio">Teléfono (WhatsApp)</label>
+                    <input type="text" id="telefono" name="telefono" th:value="${cliente.telefono}" required
+                           pattern="^\d{7,15}$" title="Ingrese entre 7 y 15 dígitos numéricos" placeholder="Ej. 0990000101">
+                </div>
+
+                <div class="campo">
+                    <label for="direccion">Dirección habitual para delivery</label>
+                    <input type="text" id="direccion" name="direccion" th:value="${cliente.direccion}" placeholder="Ej. Calle Las Rosas 120, Bº San Miguel">
+                </div>
+
+                <div class="campo">
+                    <label for="email">Correo electrónico (opcional)</label>
+                    <input type="email" id="email" name="email" th:value="${cliente.email}" placeholder="correo@ejemplo.com">
+                </div>
+
+                <div class="campo">
+                    <label for="observaciones">Observaciones / Preferencias</label>
+                    <textarea id="observaciones" name="observaciones" rows="3" th:text="${cliente.observaciones}" placeholder="Ej. Prefiere transferencia bancaria, alergia a frutos secos..."></textarea>
+                </div>
+
+                <div class="acciones" style="margin-top: 1rem;">
+                    <button type="submit" class="boton">Guardar Cliente</button>
+                    <a th:href="@{/clientes}" class="boton boton-secundario">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

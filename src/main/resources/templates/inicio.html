@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <h1>Bienvenido al sistema</h1>
+    <p class="texto-suave">Etapa 2: base de datos y archivos iniciales. Esta página verifica la conexión con MySQL
+        y muestra cuántos registros de prueba tiene cada tabla.</p>
+
+    <section class="tarjeta" th:if="${tablas}">
+        <h2>Tablas de la base <code>tortas3b</code></h2>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr><th>Tabla</th><th class="num">Registros</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${tablas}">
+                    <td th:text="${t.key}">tabla</td>
+                    <td class="num" th:text="${t.value}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Copiar este archivo como "application-local.properties" (misma carpeta)
+# y completar con los datos de SU instalación de MySQL.
+# application-local.properties está en .gitignore: nunca se sube a Git.
+spring.datasource.username=root
+spring.datasource.password=ESCRIBIR_AQUI_LA_CONTRASENA_DE_MYSQL

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Acceso Denegado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div class="tarjeta centrado" style="padding: 3rem 1.5rem; max-width: 550px; margin: 2rem auto;">
+        <span style="font-size: 3.5rem;">🔒</span>
+        <h1 style="color: var(--error); margin-top: 1rem;">403 - Acceso Denegado</h1>
+        <p class="texto-suave">No tiene los permisos necesarios para acceder a este módulo del sistema.</p>
+        <p style="font-size: .9rem; color: var(--texto-suave);">Esta sección está reservada exclusivamente para usuarios con rol de <strong>Administrador</strong>.</p>
+        <div style="margin-top: 1.5rem;">
+            <a th:href="@{/dashboard}" class="boton">Volver al Dashboard</a>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

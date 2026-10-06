@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestión de Clientes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Cartera de Clientes</h1>
+            <p class="texto-suave">Registro y consulta de clientes frecuentes para pedidos y entregas.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/clientes/nuevo}" class="boton">➕ Nuevo Cliente</a>
+        </div>
+    </div>
+
+    <!-- Buscador -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <form th:action="@{/clientes}" method="get" class="filtros">
+            <div class="campo" style="flex: 1 1 280px;">
+                <label for="busqueda">Buscar por nombre o teléfono</label>
+                <input type="text" id="busqueda" name="busqueda" th:value="${busqueda}" placeholder="Ej. Ana Benítez o 0990000101">
+            </div>
+            <button type="submit" class="boton boton-secundario">Buscar</button>
+            <a th:if="${busqueda != null and !#strings.isEmpty(busqueda)}" th:href="@{/clientes}" class="boton boton-secundario">Limpiar</a>
+        </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Dirección habitual</th>
+                    <th>Email</th>
+                    <th>Estado</th>
+                    <th class="centrado">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(clientes)}">
+                    <td colspan="6" class="centrado texto-suave">No se encontraron clientes registrados.</td>
+                </tr>
+                <tr th:each="c : ${clientes}">
+                    <td>
+                        <a th:href="@{/clientes/detalle/{id}(id=${c.id})}" style="font-weight: 600; text-decoration: none;" th:text="${c.nombre}">Ana Benítez</a>
+                    </td>
+                    <td th:text="${c.telefono}">0990000101</td>
+                    <td th:text="${c.direccion != null ? c.direccion : '—'}">San Miguel</td>
+                    <td th:text="${c.email != null ? c.email : '—'}">correo@ejemplo.com</td>
+                    <td>
+                        <span class="estado" th:classappend="${c.activo} ? 'estado-ENTREGADO' : 'estado-CANCELADO'"
+                              th:text="${c.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
+                    </td>
+                    <td class="centrado">
+                        <div class="acciones" style="justify-content: center;">
+                            <a th:href="@{/clientes/detalle/{id}(id=${c.id})}" class="boton boton-secundario boton-chico">Ficha</a>
+                            <a th:href="@{/clientes/editar/{id}(id=${c.id})}" class="boton boton-secundario boton-chico">Editar</a>
+                            <th:block th:if="${esAdmin}">
+                                <form th:if="${c.activo}" th:action="@{/clientes/desactivar/{id}(id=${c.id})}" method="post"
+                                      data-confirmar="¿Seguro que desea desactivar este cliente?">
+                                    <input type="hidden" name="activo" value="false">
+                                    <button type="submit" class="boton boton-peligro boton-chico">Desactivar</button>
+                                </form>
+                                <form th:unless="${c.activo}" th:action="@{/clientes/desactivar/{id}(id=${c.id})}" method="post">
+                                    <input type="hidden" name="activo" value="true">
+                                    <button type="submit" class="boton boton-secundario boton-chico" style="color:var(--exito); border-color:var(--exito);">Reactivar</button>
+                                </form>
+                            </th:block>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

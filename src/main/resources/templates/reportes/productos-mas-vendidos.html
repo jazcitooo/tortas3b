@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Productos Más Vendidos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Ranking de Productos Más Vendidos</h1>
+            <p class="texto-suave">Productos con mayor rotación e ingresos para optimizar la planificación de repostería.</p>
+        </div>
+        <div class="acciones no-imprimir">
+            <button type="button" class="boton" onclick="window.print()">🖨️ Imprimir Ranking</button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="tarjeta no-imprimir" style="margin-bottom: 1rem;">
+        <form th:action="@{/reportes/productos-mas-vendidos}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fechaDesde">Fecha Desde</label>
+                <input type="date" id="fechaDesde" name="fechaDesde" th:value="${fechaDesde}">
+            </div>
+            <div class="campo">
+                <label for="fechaHasta">Fecha Hasta</label>
+                <input type="date" id="fechaHasta" name="fechaHasta" th:value="${fechaHasta}">
+            </div>
+            <div class="campo">
+                <label for="limite">Límite</label>
+                <select id="limite" name="limite">
+                    <option value="5" th:selected="${limite == 5}">Top 5</option>
+                    <option value="10" th:selected="${limite == 10}">Top 10</option>
+                    <option value="20" th:selected="${limite == 20}">Top 20</option>
+                </select>
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Consultar</button>
+                <a th:href="@{/reportes/productos-mas-vendidos}" class="boton boton-secundario">Últimos 30 días</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla de Ranking -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th style="width: 70px;" class="centrado">Posición</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th class="num">Unidades Vendidas</th>
+                    <th class="num">Total Recaudado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(ranking)}">
+                    <td colspan="5" class="centrado texto-suave">No se registran ventas en el período seleccionado.</td>
+                </tr>
+                <tr th:each="r, stat : ${ranking}">
+                    <td class="centrado" style="font-weight: 700; font-size: 1.1rem;">
+                        <span th:if="${stat.count == 1}">🥇 1</span>
+                        <span th:if="${stat.count == 2}">🥈 2</span>
+                        <span th:if="${stat.count == 3}">🥉 3</span>
+                        <span th:if="${stat.count > 3}" th:text="'#' + ${stat.count}">#4</span>
+                    </td>
+                    <td><strong th:text="${r.nombre}">Torta Selva Negra</strong></td>
+                    <td>
+                        <span class="estado estado-CONFIRMADO" th:text="${r.categoria}">TORTA</span>
+                    </td>
+                    <td class="num" style="font-weight: 600;" th:text="${r.cantidad_vendida}">15</td>
+                    <td class="num" style="font-weight: 700; color: var(--chocolate);"
+                        th:text="${#numbers.formatDecimal(r.total_recaudado, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">1.800.000 Gs.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

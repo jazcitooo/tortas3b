@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reporte de Entregas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Reporte de Entregas Diarias</h1>
+            <p class="texto-suave">Programación y detalle de pedidos para producción y distribución.</p>
+        </div>
+        <div class="acciones no-imprimir">
+            <button type="button" class="boton" onclick="window.print()">🖨️ Imprimir Reporte</button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="tarjeta no-imprimir" style="margin-bottom: 1rem;">
+        <form th:action="@{/reportes/entregas}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fechaDesde">Fecha Desde</label>
+                <input type="date" id="fechaDesde" name="fechaDesde" th:value="${fechaDesde}">
+            </div>
+            <div class="campo">
+                <label for="fechaHasta">Fecha Hasta</label>
+                <input type="date" id="fechaHasta" name="fechaHasta" th:value="${fechaHasta}">
+            </div>
+            <div class="campo">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado">
+                    <option value="TODOS">-- Todos los estados --</option>
+                    <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
+                    <option value="CONFIRMADO" th:selected="${estadoFiltro == 'CONFIRMADO'}">Confirmado</option>
+                    <option value="EN_PREPARACION" th:selected="${estadoFiltro == 'EN_PREPARACION'}">En preparación</option>
+                    <option value="LISTO" th:selected="${estadoFiltro == 'LISTO'}">Listo</option>
+                    <option value="EN_CAMINO" th:selected="${estadoFiltro == 'EN_CAMINO'}">En camino</option>
+                    <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+                    <option value="CANCELADO" th:selected="${estadoFiltro == 'CANCELADO'}">Cancelado</option>
+                </select>
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Generar</button>
+                <a th:href="@{/reportes/entregas}" class="boton boton-secundario">Hoy</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla de reporte -->
+    <section class="tarjeta">
+        <div style="margin-bottom: 1rem;">
+            <strong>Período:</strong>
+            <span th:text="${#temporals.format(fechaDesde, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(fechaHasta, 'dd/MM/yyyy')}">Hoy</span>
+            | Total entregas listadas: <strong th:text="${#lists.size(entregas)}">0</strong>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Cliente / Contacto</th>
+                    <th>Productos Encargados</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th class="num">Monto Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(entregas)}">
+                    <td colspan="7" class="centrado texto-suave">No se encontraron entregas para el período seleccionado.</td>
+                </tr>
+                <tr th:each="e : ${entregas}">
+                    <td th:text="${#dates.format(e.fecha_entrega, 'dd/MM/yyyy')}">12/10/2026</td>
+                    <td style="font-weight: 600;" th:text="${#dates.format(e.hora_entrega, 'HH:mm')}">14:00</td>
+                    <td>
+                        <strong th:text="${e.cliente_nombre}">Cliente</strong><br>
+                        <span class="texto-suave" style="font-size: .85rem;" th:text="${e.cliente_telefono}">0990000000</span>
+                    </td>
+                    <td th:text="${e.resumen_productos != null ? e.resumen_productos : '—'}">Torta Chocolate (x1)</td>
+                    <td>
+                        <span th:text="${e.tipo_entrega == 'DELIVERY' ? '🛵 Delivery' : '🏪 Retiro'}">Retiro</span>
+                    </td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${e.estado}" th:text="${e.estado}">PENDIENTE</span>
+                    </td>
+                    <td class="num" style="font-weight: 700;"
+                        th:text="${#numbers.formatDecimal(e.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Catálogo de Productos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Catálogo de Productos</h1>
+            <p class="texto-suave">Tortas artesanales, cupcakes, chocolates y especialidades por pedido.</p>
+        </div>
+        <div class="acciones" th:if="${esAdmin}">
+            <a th:href="@{/productos/nuevo}" class="boton">➕ Nuevo Producto</a>
+        </div>
+    </div>
+
+    <!-- Filtros de categoría -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <div class="filtros">
+            <span style="font-weight: 600; align-self: center;">Filtrar por categoría:</span>
+            <a th:href="@{/productos}" class="boton boton-secundario boton-chico"
+               th:classappend="${categoriaActual == null or categoriaActual == 'TODAS'} ? 'activo' : ''">Todas</a>
+            <a th:href="@{/productos(categoria='TORTA')}" class="boton boton-secundario boton-chico"
+               th:classappend="${categoriaActual == 'TORTA'} ? 'activo' : ''">🍰 Tortas</a>
+            <a th:href="@{/productos(categoria='CUPCAKE')}" class="boton boton-secundario boton-chico"
+               th:classappend="${categoriaActual == 'CUPCAKE'} ? 'activo' : ''">🧁 Cupcakes</a>
+            <a th:href="@{/productos(categoria='CHOCOLATE')}" class="boton boton-secundario boton-chico"
+               th:classappend="${categoriaActual == 'CHOCOLATE'} ? 'activo' : ''">🍫 Chocolates</a>
+            <a th:href="@{/productos(categoria='OTRO')}" class="boton boton-secundario boton-chico"
+               th:classappend="${categoriaActual == 'OTRO'} ? 'activo' : ''">Otros</a>
+        </div>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th class="num">Precio Unitario</th>
+                    <th class="num">Peso aprox. (kg)</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th class="centrado" th:if="${esAdmin}">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(productos)}">
+                    <td colspan="7" class="centrado texto-suave">No hay productos en esta categoría.</td>
+                </tr>
+                <tr th:each="p : ${productos}">
+                    <td><strong th:text="${p.nombre}">Torta Selva Negra</strong></td>
+                    <td>
+                        <span class="estado estado-CONFIRMADO" th:text="${p.categoria}">TORTA</span>
+                    </td>
+                    <td class="num" style="font-weight: 600;" th:text="${#numbers.formatDecimal(p.precio, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">120.000 Gs.</td>
+                    <td class="num" th:text="${p.pesoKg} + ' kg'">1.500 kg</td>
+                    <td class="texto-suave" th:text="${p.descripcion != null ? p.descripcion : '—'}">Descripción</td>
+                    <td>
+                        <span class="estado" th:classappend="${p.activo} ? 'estado-ENTREGADO' : 'estado-CANCELADO'"
+                              th:text="${p.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
+                    </td>
+                    <td class="centrado" th:if="${esAdmin}">
+                        <div class="acciones" style="justify-content: center;">
+                            <a th:href="@{/productos/editar/{id}(id=${p.id})}" class="boton boton-secundario boton-chico">Editar</a>
+                            <form th:if="${p.activo}" th:action="@{/productos/desactivar/{id}(id=${p.id})}" method="post"
+                                  data-confirmar="¿Desea desactivar este producto del catálogo?">
+                                <input type="hidden" name="activo" value="false">
+                                <button type="submit" class="boton boton-peligro boton-chico">Desactivar</button>
+                            </form>
+                            <form th:unless="${p.activo}" th:action="@{/productos/desactivar/{id}(id=${p.id})}" method="post">
+                                <input type="hidden" name="activo" value="true">
+                                <button type="submit" class="boton boton-secundario boton-chico" style="color:var(--exito); border-color:var(--exito);">Reactivar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

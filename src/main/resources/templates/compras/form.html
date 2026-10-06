@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nueva Orden de Compra')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1>Nueva Orden de Compra</h1>
+        <p class="texto-suave">Registre el pedido de reposición a un proveedor. Al marcarlo como recibido se sumará el stock.</p>
+
+        <form th:action="@{/compras/guardar}" method="post" class="formulario" id="form-compra">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <section class="tarjeta">
+                <h2>1. Proveedor y Observaciones</h2>
+                <div class="formulario dos-columnas">
+                    <div class="campo ancho-completo">
+                        <label for="proveedorId" class="obligatorio">Proveedor</label>
+                        <select id="proveedorId" name="proveedorId" required>
+                            <option value="">-- Seleccionar proveedor --</option>
+                            <option th:each="p : ${proveedores}" th:value="${p.id}" th:text="${p.nombre}">Lácteos Los Colonos</option>
+                        </select>
+                    </div>
+                    <div class="campo ancho-completo">
+                        <label for="observaciones">Observaciones</label>
+                        <input type="text" id="observaciones" name="observaciones" placeholder="Número de factura previa, fecha estimada de llegada...">
+                    </div>
+                </div>
+            </section>
+
+            <section class="tarjeta">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="margin: 0;">2. Ingredientes a Reponer</h2>
+                    <button type="button" class="boton boton-secundario boton-chico" id="btn-agregar-ingrediente">➕ Agregar Ingrediente</button>
+                </div>
+
+                <div class="tabla-contenedor">
+                    <table class="tabla tabla-items" id="tabla-compra">
+                        <thead>
+                        <tr>
+                            <th style="min-width: 250px;">Ingrediente</th>
+                            <th style="width: 130px;" class="num">Cantidad</th>
+                            <th style="width: 160px;" class="num">Costo Unitario (Gs.)</th>
+                            <th style="width: 50px;" class="centrado">Quitar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="filas-ingredientes">
+                        <tr class="fila-ingrediente">
+                            <td>
+                                <select name="ingredienteId" required>
+                                    <option value="">-- Seleccionar ingrediente --</option>
+                                    <option th:each="ing : ${ingredientes}" th:value="${ing.id}"
+                                            th:text="${ing.nombre} + ' (' + ${ing.unidad} + ')'">Harina 0000 (KG)</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" name="cantidad" class="num" value="1.000" step="0.001" min="0.001" required>
+                            </td>
+                            <td>
+                                <input type="number" name="costoUnitario" class="num" value="0" step="100" min="0" required>
+                            </td>
+                            <td class="centrado">
+                                <button type="button" class="boton boton-peligro boton-chico btn-eliminar-ing">✕</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="acciones" style="margin-top: 1rem;">
+                <button type="submit" class="boton">Crear Orden de Compra</button>
+                <a th:href="@{/compras}" class="boton boton-secundario">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<template id="template-fila-ingrediente">
+    <tr class="fila-ingrediente">
+        <td>
+            <select name="ingredienteId" required>
+                <option value="">-- Seleccionar ingrediente --</option>
+                <option th:each="ing : ${ingredientes}" th:value="${ing.id}"
+                        th:text="${ing.nombre} + ' (' + ${ing.unidad} + ')'">Harina 0000 (KG)</option>
+            </select>
+        </td>
+        <td>
+            <input type="number" name="cantidad" class="num" value="1.000" step="0.001" min="0.001" required>
+        </td>
+        <td>
+            <input type="number" name="costoUnitario" class="num" value="0" step="100" min="0" required>
+        </td>
+        <td class="centrado">
+            <button type="button" class="boton boton-peligro boton-chico btn-eliminar-ing">✕</button>
+        </td>
+    </tr>
+</template>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const contenedor = document.getElementById('filas-ingredientes');
+    const btnAgregar = document.getElementById('btn-agregar-ingrediente');
+    const template = document.getElementById('template-fila-ingrediente');
+
+    function vincular(fila) {
+        const btnQuitar = fila.querySelector('.btn-eliminar-ing');
+        if (btnQuitar) {
+            btnQuitar.addEventListener('click', () => {
+                if (document.querySelectorAll('.fila-ingrediente').length > 1) {
+                    fila.remove();
+                } else {
+                    alert('La orden debe incluir al menos un ingrediente.');
+                }
+            });
+        }
+    }
+
+    if (btnAgregar && template && contenedor) {
+        btnAgregar.addEventListener('click', () => {
+            const clon = template.content.cloneNode(true);
+            const nueva = clon.querySelector('.fila-ingrediente');
+            contenedor.appendChild(nueva);
+            vincular(nueva);
+        });
+    }
+
+    document.querySelectorAll('.fila-ingrediente').forEach(vincular);
+});
+</script>
+</body>
+</html>

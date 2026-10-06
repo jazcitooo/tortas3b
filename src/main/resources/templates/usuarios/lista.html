@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestión de Usuarios')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Usuarios del Sistema</h1>
+            <p class="texto-suave">Cuentas con acceso, asignación de roles (ADMIN / OPERADOR) y contraseñas BCrypt.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/usuarios/nuevo}" class="boton">➕ Nuevo Usuario</a>
+        </div>
+    </div>
+
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Nombre de Usuario</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Fecha Alta</th>
+                    <th class="centrado">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${usuarios}">
+                    <td th:text="${u.id}">1</td>
+                    <td style="font-weight: 600;" th:text="${u.nombre}">Nombre</td>
+                    <td><code th:text="${u.username}">admin</code></td>
+                    <td>
+                        <span class="estado" th:classappend="${u.rol == 'ADMIN'} ? 'estado-CONFIRMADO' : 'estado-LISTO'" th:text="${u.rol}">ADMIN</span>
+                    </td>
+                    <td>
+                        <span class="estado" th:classappend="${u.activo} ? 'estado-ENTREGADO' : 'estado-CANCELADO'"
+                              th:text="${u.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
+                    </td>
+                    <td th:text="${#temporals.format(u.creadoEn, 'dd/MM/yyyy HH:mm')}">01/10/2026</td>
+                    <td class="centrado">
+                        <div class="acciones" style="justify-content: center;">
+                            <a th:href="@{/usuarios/editar/{id}(id=${u.id})}" class="boton boton-secundario boton-chico">Editar</a>
+                            <form th:if="${u.activo}" th:action="@{/usuarios/estado/{id}(id=${u.id})}" method="post"
+                                  data-confirmar="¿Seguro que desea desactivar este usuario?">
+                                <input type="hidden" name="activo" value="false">
+                                <button type="submit" class="boton boton-peligro boton-chico">Desactivar</button>
+                            </form>
+                            <form th:unless="${u.activo}" th:action="@{/usuarios/estado/{id}(id=${u.id})}" method="post">
+                                <input type="hidden" name="activo" value="true">
+                                <button type="submit" class="boton boton-secundario boton-chico" style="color: var(--exito); border-color: var(--exito);">Activar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

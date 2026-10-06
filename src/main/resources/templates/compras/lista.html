@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Compras de Reposición')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Compras y Reposición de Materia Prima</h1>
+            <p class="texto-suave">Órdenes a proveedores. Al recibirlas se actualiza automáticamente el stock de ingredientes.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/compras/nuevo}" class="boton">➕ Nueva Orden de Compra</a>
+        </div>
+    </div>
+
+    <!-- Filtro de estado -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <form th:action="@{/compras}" method="get" class="filtros">
+            <div class="campo">
+                <label for="estado">Estado de la Compra</label>
+                <select id="estado" name="estado">
+                    <option value="TODOS">-- Todos los estados --</option>
+                    <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente de recepción</option>
+                    <option value="RECIBIDA" th:selected="${estadoFiltro == 'RECIBIDA'}">Recibida (Stock sumado)</option>
+                    <option value="CANCELADA" th:selected="${estadoFiltro == 'CANCELADA'}">Cancelada</option>
+                </select>
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Filtrar</button>
+                <a th:href="@{/compras}" class="boton boton-secundario">Limpiar</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>N° Orden</th>
+                    <th>Proveedor</th>
+                    <th>Fecha de Emisión</th>
+                    <th>Fecha de Recepción</th>
+                    <th>Estado</th>
+                    <th class="num">Total Invertido</th>
+                    <th class="centrado">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(compras)}">
+                    <td colspan="7" class="centrado texto-suave">No se encontraron órdenes de compra.</td>
+                </tr>
+                <tr th:each="c : ${compras}">
+                    <td><strong>#<span th:text="${c.id}">1</span></strong></td>
+                    <td style="font-weight: 600;" th:text="${c.proveedorNombre}">Distribuidora</td>
+                    <td th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy HH:mm')}">10/10/2026</td>
+                    <td th:text="${c.fechaRecepcion != null ? #temporals.format(c.fechaRecepcion, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${c.estado}" th:text="${c.estado}">PENDIENTE</span>
+                    </td>
+                    <td class="num" style="font-weight: 700;"
+                        th:text="${#numbers.formatDecimal(c.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="centrado">
+                        <a th:href="@{/compras/detalle/{id}(id=${c.id})}" class="boton boton-secundario boton-chico">Ver Orden</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

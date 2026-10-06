@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${producto.id != null ? 'Editar Producto' : 'Nuevo Producto'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="max-width: 650px; margin: 0 auto;">
+        <h1 th:text="${producto.id != null ? 'Editar Producto' : 'Nuevo Producto'}">Producto</h1>
+        <p class="texto-suave">Cargue los datos del producto para la venta y control de producción.</p>
+
+        <section class="tarjeta">
+            <form th:action="${producto.id != null ? '/productos/actualizar' : '/productos/guardar'}" method="post" class="formulario dos-columnas">
+                <input type="hidden" name="id" th:value="${producto.id}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="campo ancho-completo">
+                    <label for="nombre" class="obligatorio">Nombre del Producto</label>
+                    <input type="text" id="nombre" name="nombre" th:value="${producto.nombre}" required placeholder="Ej. Torta Red Velvet">
+                </div>
+
+                <div class="campo">
+                    <label for="categoria" class="obligatorio">Categoría</label>
+                    <select id="categoria" name="categoria" required>
+                        <option value="TORTA" th:selected="${producto.categoria == 'TORTA'}">🍰 Torta</option>
+                        <option value="CUPCAKE" th:selected="${producto.categoria == 'CUPCAKE'}">🧁 Cupcake</option>
+                        <option value="CHOCOLATE" th:selected="${producto.categoria == 'CHOCOLATE'}">🍫 Chocolate</option>
+                        <option value="OTRO" th:selected="${producto.categoria == 'OTRO'}">Otro</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="precio" class="obligatorio">Precio de Venta (Gs.)</label>
+                    <input type="number" id="precio" name="precio" th:value="${producto.precio}" required min="1000" step="1000" placeholder="Ej. 120000">
+                </div>
+
+                <div class="campo">
+                    <label for="pesoKg" class="obligatorio">Peso aproximado por unidad (kg)</label>
+                    <input type="number" id="pesoKg" name="pesoKg" th:value="${producto.pesoKg}" required min="0.010" step="0.010" placeholder="Ej. 1.500">
+                </div>
+
+                <div class="campo">
+                    <label for="costoKilo">Costo aproximado por kilo (Gs.)</label>
+                    <input type="number" id="costoKilo" name="costoKilo" th:value="${producto.costoKilo}" min="0" step="1000" placeholder="Ej. 45000">
+                </div>
+
+                <div class="campo ancho-completo">
+                    <label for="descripcion">Descripción / Detalles de elaboración</label>
+                    <textarea id="descripcion" name="descripcion" rows="3" th:text="${producto.descripcion}" placeholder="Relleno, cobertura, decoraciones disponibles..."></textarea>
+                </div>
+
+                <div class="acciones ancho-completo" style="margin-top: 1rem;">
+                    <button type="submit" class="boton">Guardar Producto</button>
+                    <a th:href="@{/productos}" class="boton boton-secundario">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

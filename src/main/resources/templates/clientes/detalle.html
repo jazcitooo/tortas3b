@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ficha de Cliente')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1 th:text="${cliente.nombre}">Ana Benítez</h1>
+            <p class="texto-suave">Ficha del cliente e historial consolidado de pedidos.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/pedidos/nuevo}" class="boton">➕ Crear Pedido para este Cliente</a>
+            <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="boton boton-secundario">Editar Datos</a>
+            <a th:href="@{/clientes}" class="boton boton-secundario">Volver</a>
+        </div>
+    </div>
+
+    <!-- Información del cliente -->
+    <section class="tarjeta" style="margin-bottom: 1.5rem;">
+        <h2>Datos de Contacto</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Teléfono / WhatsApp:</span><br>
+                <strong th:text="${cliente.telefono}">0990000101</strong>
+            </div>
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Dirección:</span><br>
+                <span th:text="${cliente.direccion != null ? cliente.direccion : 'Sin dirección registrada'}">Calle Las Rosas 120</span>
+            </div>
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Email:</span><br>
+                <span th:text="${cliente.email != null ? cliente.email : 'Sin email'}">correo@ejemplo.com</span>
+            </div>
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Observaciones:</span><br>
+                <span th:text="${cliente.observaciones != null ? cliente.observaciones : 'Ninguna'}">Cliente frecuente</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Historial de pedidos -->
+    <section class="tarjeta">
+        <h2>Historial de Pedidos (<span th:text="${#lists.size(pedidos)}">0</span>)</h2>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>N° Pedido</th>
+                    <th>Fecha Entrega</th>
+                    <th>Hora</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th class="num">Total</th>
+                    <th class="centrado">Acción</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="7" class="centrado texto-suave">Este cliente aún no registra pedidos.</td>
+                </tr>
+                <tr th:each="p : ${pedidos}">
+                    <td><strong>#<span th:text="${p.id}">1</span></strong></td>
+                    <td th:text="${#temporals.format(p.fechaEntrega, 'dd/MM/yyyy')}">12/10/2026</td>
+                    <td th:text="${#temporals.format(p.horaEntrega, 'HH:mm')}">14:00</td>
+                    <td th:text="${p.tipoEntrega == 'DELIVERY' ? '🛵 Delivery' : '🏪 Retiro'}">Retiro</td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${p.estado}" th:text="${p.estado}">PENDIENTE</span>
+                    </td>
+                    <td class="num" th:text="${#numbers.formatDecimal(p.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="centrado">
+                        <a th:href="@{/pedidos/detalle/{id}(id=${p.id})}" class="boton boton-secundario boton-chico">Ver Detalle</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

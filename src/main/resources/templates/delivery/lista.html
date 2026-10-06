@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestión de Delivery')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Despacho y Delivery</h1>
+            <p class="texto-suave">Control y seguimiento de pedidos con entrega a domicilio.</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="tarjeta" style="margin-bottom: 1rem;">
+        <form th:action="@{/delivery}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fecha">Fecha de Entrega</label>
+                <input type="date" id="fecha" name="fecha" th:value="${fechaFiltro}">
+            </div>
+            <div class="campo">
+                <label for="estado">Estado del Delivery</label>
+                <select id="estado" name="estado">
+                    <option value="TODOS">-- Todos los estados --</option>
+                    <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
+                    <option value="PREPARANDO" th:selected="${estadoFiltro == 'PREPARANDO'}">Preparando</option>
+                    <option value="EN_CAMINO" th:selected="${estadoFiltro == 'EN_CAMINO'}">En camino</option>
+                    <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+                    <option value="CANCELADO" th:selected="${estadoFiltro == 'CANCELADO'}">Cancelado</option>
+                </select>
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Filtrar</button>
+                <a th:href="@{/delivery}" class="boton boton-secundario">Limpiar</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>N° Pedido</th>
+                    <th>Dirección de Destino</th>
+                    <th>Teléfono de Contacto</th>
+                    <th>Estado de Envío</th>
+                    <th>Indicaciones</th>
+                    <th class="centrado">Cambiar Estado</th>
+                    <th class="centrado">Detalle</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(deliveries)}">
+                    <td colspan="7" class="centrado texto-suave">No hay entregas por delivery registradas.</td>
+                </tr>
+                <tr th:each="d : ${deliveries}">
+                    <td><strong>#<span th:text="${d.pedidoId}">1</span></strong></td>
+                    <td style="font-weight: 600;" th:text="${d.direccion}">Calle Las Rosas 120</td>
+                    <td><a th:href="'tel:' + ${d.telefonoContacto}" th:text="${d.telefonoContacto}">0990000000</a></td>
+                    <td>
+                        <span class="estado" th:classappend="'estado-' + ${d.estado}" th:text="${d.estado}">PENDIENTE</span>
+                    </td>
+                    <td class="texto-suave" th:text="${d.observaciones != null ? d.observaciones : '—'}">Indicaciones</td>
+                    <td class="centrado">
+                        <div class="acciones" style="justify-content: center;">
+                            <form th:if="${d.estado == 'PENDIENTE'}" th:action="@{/delivery/estado/{id}(id=${d.pedidoId})}" method="post">
+                                <input type="hidden" name="estado" value="PREPARANDO">
+                                <button type="submit" class="boton boton-secundario boton-chico">Preparando</button>
+                            </form>
+                            <form th:if="${d.estado == 'PREPARANDO'}" th:action="@{/delivery/estado/{id}(id=${d.pedidoId})}" method="post">
+                                <input type="hidden" name="estado" value="EN_CAMINO">
+                                <button type="submit" class="boton boton-secundario boton-chico">En camino</button>
+                            </form>
+                            <form th:if="${d.estado == 'EN_CAMINO'}" th:action="@{/delivery/estado/{id}(id=${d.pedidoId})}" method="post">
+                                <input type="hidden" name="estado" value="ENTREGADO">
+                                <button type="submit" class="boton boton-chico" style="background: var(--exito);">Entregado</button>
+                            </form>
+                            <span th:if="${d.estado == 'ENTREGADO'}" class="texto-suave" style="font-size: .85rem;">Completado</span>
+                            <span th:if="${d.estado == 'CANCELADO'}" class="texto-suave" style="font-size: .85rem;">Cancelado</span>
+                        </div>
+                    </td>
+                    <td class="centrado">
+                        <a th:href="@{/pedidos/detalle/{id}(id=${d.pedidoId})}" class="boton boton-secundario boton-chico">Ver Pedido</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

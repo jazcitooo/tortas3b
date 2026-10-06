@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${pedido.id != null ? 'Editar Pedido #' + pedido.id : 'Nuevo Pedido'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="max-width: 850px; margin: 0 auto;">
+        <h1 th:text="${pedido.id != null ? 'Editar Pedido #' + pedido.id : 'Nuevo Pedido'}">Pedido</h1>
+        <p class="texto-suave">
+            Límite de producción: <strong>máximo 5 entregas por hora</strong> (entre 08:00 y 20:00).
+        </p>
+
+        <form th:action="${pedido.id != null ? '/pedidos/actualizar' : '/pedidos/guardar'}" method="post" class="formulario" id="form-pedido">
+            <input type="hidden" name="id" th:value="${pedido.id}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <!-- 1. Cabecera y Cliente -->
+            <section class="tarjeta">
+                <h2>1. Datos del Cliente y Entrega</h2>
+                <div class="formulario dos-columnas">
+                    <div class="campo ancho-completo">
+                        <label for="clienteId" class="obligatorio">Cliente</label>
+                        <div style="display: flex; gap: .5rem;">
+                            <select id="clienteId" name="clienteId" required style="flex: 1;">
+                                <option value="">-- Seleccionar cliente --</option>
+                                <option th:each="c : ${clientes}" th:value="${c.id}"
+                                        th:text="${c.nombre} + ' (' + ${c.telefono} + ')'"
+                                        th:selected="${c.id == pedido.clienteId}">Ana Benítez (0990000101)</option>
+                            </select>
+                            <a th:href="@{/clientes/nuevo}" target="_blank" class="boton boton-secundario" title="Registrar nuevo cliente">➕ Nuevo</a>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="fechaEntrega" class="obligatorio">Fecha de Entrega</label>
+                        <input type="date" id="fechaEntrega" name="fechaEntrega" th:value="${pedido.fechaEntrega}"
+                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="horaEntrega" class="obligatorio">Hora de Entrega (08:00 a 20:00)</label>
+                        <input type="time" id="horaEntrega" name="horaEntrega" th:value="${pedido.horaEntrega}" min="08:00" max="20:00" required>
+                    </div>
+
+                    <div class="campo ancho-completo">
+                        <label for="tipoEntrega" class="obligatorio">Modalidad de Entrega</label>
+                        <select id="tipoEntrega" name="tipoEntrega" required>
+                            <option value="RETIRO" th:selected="${pedido.tipoEntrega == 'RETIRO'}">🏪 Retiro en local de pastelería</option>
+                            <option value="DELIVERY" th:selected="${pedido.tipoEntrega == 'DELIVERY'}">🛵 Delivery a domicilio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Datos específicos de Delivery -->
+                <div id="seccion-delivery" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--borde); display: none;">
+                    <h3>Datos de Entrega a Domicilio</h3>
+                    <div class="formulario dos-columnas">
+                        <div class="campo">
+                            <label for="deliveryDireccion" class="obligatorio">Dirección de Destino</label>
+                            <input type="text" id="deliveryDireccion" name="deliveryDireccion"
+                                   th:value="${pedido.delivery != null ? pedido.delivery.direccion : ''}"
+                                   placeholder="Calle, número, barrio o punto de referencia">
+                        </div>
+                        <div class="campo">
+                            <label for="deliveryTelefono" class="obligatorio">Teléfono de Contacto</label>
+                            <input type="text" id="deliveryTelefono" name="deliveryTelefono"
+                                   th:value="${pedido.delivery != null ? pedido.delivery.telefonoContacto : ''}"
+                                   placeholder="0990000000">
+                        </div>
+                        <div class="campo ancho-completo">
+                            <label for="deliveryObservaciones">Indicaciones para el Repartidor</label>
+                            <input type="text" id="deliveryObservaciones" name="deliveryObservaciones"
+                                   th:value="${pedido.delivery != null ? pedido.delivery.observaciones : ''}"
+                                   placeholder="Ej. Tocar timbre portón blanco, cerca de la plaza">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Ítems del Pedido -->
+            <section class="tarjeta">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="margin: 0;">2. Productos del Pedido</h2>
+                    <button type="button" class="boton boton-secundario boton-chico" id="btn-agregar-producto">➕ Agregar Producto</button>
+                </div>
+
+                <div class="tabla-contenedor">
+                    <table class="tabla tabla-items" id="tabla-pedido">
+                        <thead>
+                        <tr>
+                            <th style="min-width: 250px;">Producto</th>
+                            <th style="width: 120px;" class="num">Cantidad</th>
+                            <th style="width: 150px;" class="num">Subtotal</th>
+                            <th style="width: 60px;" class="centrado">Quitar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="filas-productos">
+                        <!-- Filas existentes en modo edición -->
+                        <tr th:each="det : ${pedido.detalles}" class="fila-producto">
+                            <td>
+                                <select name="productoId" class="select-producto" required>
+                                    <option th:each="prod : ${productos}" th:value="${prod.id}"
+                                            th:text="${prod.nombre} + ' (' + ${#numbers.formatDecimal(prod.precio, 0, 'POINT', 0, 'COMMA')} + ' Gs.)'"
+                                            th:data-precio="${prod.precio}"
+                                            th:selected="${prod.id == det.productoId}">Producto</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" name="cantidad" class="input-cantidad num" th:value="${det.cantidad}" min="1" required>
+                            </td>
+                            <td class="num celda-subtotal" style="font-weight: 600;"
+                                th:text="${#numbers.formatDecimal(det.subtotal, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                            <td class="centrado">
+                                <button type="button" class="boton boton-peligro boton-chico btn-eliminar-fila">✕</button>
+                            </td>
+                        </tr>
+
+                        <!-- Fila por defecto si es nuevo -->
+                        <tr th:if="${#lists.isEmpty(pedido.detalles)}" class="fila-producto">
+                            <td>
+                                <select name="productoId" class="select-producto" required>
+                                    <option value="">-- Elegir producto --</option>
+                                    <option th:each="prod : ${productos}" th:value="${prod.id}"
+                                            th:text="${prod.nombre} + ' (' + ${#numbers.formatDecimal(prod.precio, 0, 'POINT', 0, 'COMMA')} + ' Gs.)'"
+                                            th:data-precio="${prod.precio}">Torta</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" name="cantidad" class="input-cantidad num" value="1" min="1" required>
+                            </td>
+                            <td class="num celda-subtotal" style="font-weight: 600;">0 Gs.</td>
+                            <td class="centrado">
+                                <button type="button" class="boton boton-peligro boton-chico btn-eliminar-fila">✕</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="2" style="text-align: right; font-size: 1.1rem;">Total Estimado:</th>
+                            <th class="num" id="total-general-texto" style="font-size: 1.2rem; color: var(--chocolate);">
+                                <span th:text="${#numbers.formatDecimal(pedido.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</span>
+                            </th>
+                            <th></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="campo" style="margin-top: 1rem;">
+                    <label for="observaciones">Observaciones Especiales / Decoración</label>
+                    <textarea id="observaciones" name="observaciones" rows="2" th:text="${pedido.observaciones}" placeholder="Dedicatoria sobre la torta, colores de la crema, velas..."></textarea>
+                </div>
+            </section>
+
+            <div class="acciones" style="margin-top: 1rem;">
+                <button type="submit" class="boton">Guardar Pedido</button>
+                <a th:href="@{/pedidos}" class="boton boton-secundario">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- Plantilla oculta para agregar filas -->
+<template id="template-fila-producto">
+    <tr class="fila-producto">
+        <td>
+            <select name="productoId" class="select-producto" required>
+                <option value="">-- Elegir producto --</option>
+                <option th:each="prod : ${productos}" th:value="${prod.id}"
+                        th:text="${prod.nombre} + ' (' + ${#numbers.formatDecimal(prod.precio, 0, 'POINT', 0, 'COMMA')} + ' Gs.)'"
+                        th:data-precio="${prod.precio}">Producto</option>
+            </select>
+        </td>
+        <td>
+            <input type="number" name="cantidad" class="input-cantidad num" value="1" min="1" required>
+        </td>
+        <td class="num celda-subtotal" style="font-weight: 600;">0 Gs.</td>
+        <td class="centrado">
+            <button type="button" class="boton boton-peligro boton-chico btn-eliminar-fila">✕</button>
+        </td>
+    </tr>
+</template>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/js/pedido-form.js}"></script>
+</body>
+</html>

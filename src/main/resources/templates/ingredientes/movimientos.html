@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Historial de Movimientos de Stock')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Historial de Movimientos de Stock</h1>
+            <p class="texto-suave">Auditoría completa de ajustes manuales y recepciones de órdenes de compra.</p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/ingredientes}" class="boton boton-secundario">Volver a Inventario</a>
+        </div>
+    </div>
+
+    <section class="tarjeta">
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Ingrediente</th>
+                    <th>Tipo</th>
+                    <th class="num">Cantidad (+/−)</th>
+                    <th class="num">Stock Resultante</th>
+                    <th>Registrado por</th>
+                    <th>Motivo / Referencia</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(movimientos)}">
+                    <td colspan="7" class="centrado texto-suave">No se registran movimientos en el historial.</td>
+                </tr>
+                <tr th:each="m : ${movimientos}">
+                    <td th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy HH:mm')}">01/10/2026 10:30</td>
+                    <td><strong th:text="${m.ingredienteNombre}">Harina 0000</strong></td>
+                    <td>
+                        <span class="estado" th:classappend="${m.tipo == 'COMPRA'} ? 'estado-ENTREGADO' : 'estado-CONFIRMADO'" th:text="${m.tipo}">AJUSTE</span>
+                    </td>
+                    <td class="num" style="font-weight: 700;"
+                        th:styleappend="${m.cantidad.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'color: var(--exito);' : 'color: var(--error);'"
+                        th:text="${(m.cantidad.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? '+' : '') + #numbers.formatDecimal(m.cantidad, 1, 'POINT', 3, 'COMMA')}">
+                        +5,000
+                    </td>
+                    <td class="num" th:text="${#numbers.formatDecimal(m.stockResultante, 1, 'POINT', 3, 'COMMA')}">15,000</td>
+                    <td th:text="${m.usuarioNombre}">Admin</td>
+                    <td class="texto-suave" th:text="${m.motivo}">Ajuste periódico</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

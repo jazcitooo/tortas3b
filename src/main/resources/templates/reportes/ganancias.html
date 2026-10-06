@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reporte de Ganancias')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <h1>Reporte de Rentabilidad y Ganancias</h1>
+            <p class="texto-suave">Análisis económico con margen de ganancia configurable y control de kilos elaborados.</p>
+        </div>
+        <div class="acciones no-imprimir">
+            <button type="button" class="boton" onclick="window.print()">🖨️ Imprimir Reporte</button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="tarjeta no-imprimir" style="margin-bottom: 1rem;">
+        <form th:action="@{/reportes/ganancias}" method="get" class="filtros">
+            <div class="campo">
+                <label for="fechaDesde">Fecha Desde</label>
+                <input type="date" id="fechaDesde" name="fechaDesde" th:value="${fechaDesde}">
+            </div>
+            <div class="campo">
+                <label for="fechaHasta">Fecha Hasta</label>
+                <input type="date" id="fechaHasta" name="fechaHasta" th:value="${fechaHasta}">
+            </div>
+            <div class="acciones" style="align-self: flex-end;">
+                <button type="submit" class="boton boton-secundario">Consultar</button>
+                <a th:href="@{/reportes/ganancias}" class="boton boton-secundario">Últimos 30 días</a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Explicación de fórmula de ganancia -->
+    <div class="alerta alerta-advertencia">
+        💡 <strong>Fórmula de negocio aplicada:</strong> Ganancia Neta Estimada = <code>Ingresos Totales × <span th:text="${reporte.porcentaje}">38</span>%</code>.
+        Los kilos corresponden a la sumatoria aproximada de peso de tortas y productos despachados.
+    </div>
+
+    <!-- Indicadores del período -->
+    <section class="grilla" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="tarjeta indicador">
+            <div class="valor" style="color: var(--chocolate);"
+                 th:text="${#numbers.formatDecimal(reporte.totalIngresos, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</div>
+            <div class="etiqueta">Total Ingresos por Ventas</div>
+        </div>
+        <div class="tarjeta indicador">
+            <div class="valor" style="color: var(--exito);"
+                 th:text="${#numbers.formatDecimal(reporte.totalGanancias, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</div>
+            <div class="etiqueta">Ganancia Estimada (<span th:text="${reporte.porcentaje}">38</span>%)</div>
+        </div>
+        <div class="tarjeta indicador">
+            <div class="valor" th:text="${#numbers.formatDecimal(reporte.totalKilos, 1, 'POINT', 3, 'COMMA')} + ' kg'">0 kg</div>
+            <div class="etiqueta">Volumen Producido (kg)</div>
+        </div>
+        <div class="tarjeta indicador">
+            <div class="valor" th:text="${reporte.totalVentas}">0</div>
+            <div class="etiqueta">Cantidad de Ventas Cobradas</div>
+        </div>
+    </section>
+
+    <!-- Tabla diaria -->
+    <section class="tarjeta">
+        <h2>Detalle Diario</h2>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th class="num">N° Ventas</th>
+                    <th class="num">Ingresos del Día</th>
+                    <th class="num">Kilos Vendidos</th>
+                    <th class="num">Ganancia (<span th:text="${reporte.porcentaje}">38</span>%)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(reporte.filas)}">
+                    <td colspan="5" class="centrado texto-suave">No se registran ventas para el rango de fechas seleccionado.</td>
+                </tr>
+                <tr th:each="f : ${reporte.filas}">
+                    <td style="font-weight: 600;" th:text="${#dates.format(f.fecha, 'dd/MM/yyyy')}">12/10/2026</td>
+                    <td class="num" th:text="${f.cantidad_ventas}">1</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(f.total_ingresos, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="num" th:text="${#numbers.formatDecimal(f.total_kilos, 1, 'POINT', 3, 'COMMA')} + ' kg'">0 kg</td>
+                    <td class="num" style="font-weight: 700; color: var(--exito);"
+                        th:text="${#numbers.formatDecimal(f.ganancia, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr style="font-size: 1.1rem; background: var(--rosa-suave);">
+                    <th>TOTALES:</th>
+                    <th class="num" th:text="${reporte.totalVentas}">0</th>
+                    <th class="num" th:text="${#numbers.formatDecimal(reporte.totalIngresos, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</th>
+                    <th class="num" th:text="${#numbers.formatDecimal(reporte.totalKilos, 1, 'POINT', 3, 'COMMA')} + ' kg'">0 kg</th>
+                    <th class="num" style="color: var(--exito); font-weight: 700;"
+                        th:text="${#numbers.formatDecimal(reporte.totalGanancias, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

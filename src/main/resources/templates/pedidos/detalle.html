@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedido #' + ${pedido.id})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: encabezado}"></header>
+
+<main class="contenido">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <h1>Pedido #<span th:text="${pedido.id}">1</span></h1>
+            <p class="texto-suave">
+                Registrado el <span th:text="${#temporals.format(pedido.fechaPedido, 'dd/MM/yyyy HH:mm')}">01/10/2026</span>
+            </p>
+        </div>
+        <div class="acciones">
+            <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}"
+               th:if="${pedido.estado != 'CANCELADO' and pedido.estado != 'ENTREGADO'}"
+               class="boton boton-secundario">Editar Pedido</a>
+            <button type="button" class="boton boton-secundario" onclick="window.print()">🖨️ Imprimir Comanda</button>
+            <a th:href="@{/pedidos}" class="boton boton-secundario">Volver al Listado</a>
+        </div>
+    </div>
+
+    <!-- Panel de Estado y Cobro -->
+    <div class="grilla" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <!-- Estado de Producción -->
+        <section class="tarjeta">
+            <h2>Estado del Pedido</h2>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <span class="estado" style="font-size: 1rem; padding: .3rem .9rem;"
+                      th:classappend="'estado-' + ${pedido.estado}" th:text="${pedido.estado}">PENDIENTE</span>
+            </div>
+
+            <div class="acciones" th:if="${pedido.estado != 'CANCELADO' and pedido.estado != 'ENTREGADO'}">
+                <form th:if="${pedido.estado == 'PENDIENTE'}" th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="estado" value="CONFIRMADO">
+                    <button type="submit" class="boton boton-chico">Confirmar Pedido</button>
+                </form>
+
+                <form th:if="${pedido.estado == 'CONFIRMADO'}" th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="estado" value="EN_PREPARACION">
+                    <button type="submit" class="boton boton-chico">Iniciar Preparación</button>
+                </form>
+
+                <form th:if="${pedido.estado == 'EN_PREPARACION'}" th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="estado" value="LISTO">
+                    <button type="submit" class="boton boton-chico">Marcar como Listo</button>
+                </form>
+
+                <form th:if="${pedido.estado == 'LISTO' and pedido.tipoEntrega == 'DELIVERY'}" th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="estado" value="EN_CAMINO">
+                    <button type="submit" class="boton boton-chico">Despachar (En Camino)</button>
+                </form>
+
+                <form th:if="${pedido.estado == 'LISTO' or pedido.estado == 'EN_CAMINO'}" th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="estado" value="ENTREGADO">
+                    <button type="submit" class="boton boton-chico" style="background: var(--exito);">Marcar como Entregado</button>
+                </form>
+
+                <form th:action="@{/pedidos/estado/{id}(id=${pedido.id})}" method="post" style="display:inline;"
+                      data-confirmar="¿Está seguro de que desea cancelar este pedido? Se liberará el cupo de entrega.">
+                    <input type="hidden" name="estado" value="CANCELADO">
+                    <button type="submit" class="boton boton-peligro boton-chico">Cancelar Pedido</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Estado de Caja / Venta -->
+        <section class="tarjeta">
+            <h2>Caja y Cobro</h2>
+            <div th:if="${venta != null}">
+                <div class="alerta alerta-exito" style="margin-bottom: .75rem;">
+                    ✓ <strong>Cobrado en Caja</strong>: <span th:text="${#numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">120.000 Gs.</span>
+                </div>
+                <p style="margin: 0; font-size: .9rem;">
+                    <strong>Método:</strong> <span th:text="${venta.metodoPago}">EFECTIVO</span><br>
+                    <strong>Fecha de cobro:</strong> <span th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">12/10/2026 14:15</span>
+                </p>
+                <div th:if="${esAdmin}" style="margin-top: .75rem;">
+                    <form th:action="@{/ventas/anular/{id}(id=${venta.id})}" method="post"
+                          data-confirmar="¿Anular este cobro para permitir corregir o re-facturar?">
+                        <button type="submit" class="boton boton-peligro boton-chico">Anular Cobro</button>
+                    </form>
+                </div>
+            </div>
+
+            <div th:unless="${venta != null}">
+                <p class="texto-suave" style="margin-bottom: .75rem;">Este pedido aún no ha sido cobrado.</p>
+                <a th:if="${pedido.estado != 'CANCELADO'}" th:href="@{/ventas/nuevo/{id}(id=${pedido.id})}" class="boton" style="background: var(--chocolate);">
+                    💵 Registrar Cobro en Caja
+                </a>
+                <span th:if="${pedido.estado == 'CANCELADO'}" class="texto-suave">Pedido cancelado (no cobrable).</span>
+            </div>
+        </section>
+    </div>
+
+    <!-- Datos del Cliente y Logística -->
+    <section class="tarjeta">
+        <h2>Datos de Entrega y Cliente</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Cliente:</span><br>
+                <strong th:text="${pedido.clienteNombre}">Ana Benítez</strong><br>
+                <span th:text="${pedido.clienteTelefono}">0990000000</span>
+            </div>
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Fecha y Hora Programada:</span><br>
+                <strong th:text="${#temporals.format(pedido.fechaEntrega, 'dd/MM/yyyy')}">12/10/2026</strong> a las
+                <strong th:text="${#temporals.format(pedido.horaEntrega, 'HH:mm')}">14:00</strong>
+            </div>
+            <div>
+                <span class="texto-suave" style="font-size: .85rem;">Modalidad:</span><br>
+                <span style="font-weight: 600;" th:text="${pedido.tipoEntrega == 'DELIVERY' ? '🛵 Delivery' : '🏪 Retiro en local'}">Retiro</span>
+            </div>
+            <div th:if="${pedido.delivery != null}">
+                <span class="texto-suave" style="font-size: .85rem;">Dirección de Delivery:</span><br>
+                <span th:text="${pedido.delivery.direccion}">Calle Las Rosas 120</span><br>
+                <span class="texto-suave" style="font-size: .85rem;" th:text="'Contacto: ' + ${pedido.delivery.telefonoContacto}">Tel</span>
+            </div>
+        </div>
+
+        <div th:if="${pedido.observaciones != null and !#strings.isEmpty(pedido.observaciones)}" style="margin-top: 1rem; padding-top: .75rem; border-top: 1px dashed var(--borde);">
+            <span class="texto-suave" style="font-size: .85rem;">Observaciones / Decoración:</span><br>
+            <p style="margin: .25rem 0 0;" th:text="${pedido.observaciones}">Texto</p>
+        </div>
+    </section>
+
+    <!-- Ítems del Pedido -->
+    <section class="tarjeta">
+        <h2>Productos Encargados</h2>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="num">Precio Unitario</th>
+                    <th class="num">Cantidad</th>
+                    <th class="num">Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="det : ${pedido.detalles}">
+                    <td><strong th:text="${det.productoNombre}">Torta</strong></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(det.precioUnitario, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                    <td class="num" th:text="${det.cantidad}">1</td>
+                    <td class="num" style="font-weight: 600;" th:text="${#numbers.formatDecimal(det.subtotal, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th colspan="3" style="text-align: right; font-size: 1.1rem;">Total del Pedido:</th>
+                    <th class="num" style="font-size: 1.25rem; font-weight: 700; color: var(--chocolate);"
+                        th:text="${#numbers.formatDecimal(pedido.total, 0, 'POINT', 0, 'COMMA')} + ' Gs.'">0 Gs.</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: modalConfirmar}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Compilación
+target/
+
+# Credenciales locales (nunca subir)
+src/main/resources/application-local.properties
+.env
+
+# Datos reales exportados de MySQL (se cargan a mano en Supabase)
+database/postgres/03_datos_actuales.sql
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Sistema
+Thumbs.db
+.DS_Store
